@@ -86,7 +86,7 @@ namespace VDF.GUI.ViewModels {
 				   ItemInfo.BitRateKbs == other.ItemInfo.BitRateKbs &&
 				   ItemInfo.Fps.Equals(other.ItemInfo.Fps);
 		}
-		public bool EqualsButQuality(DuplicateItemVM other) {
+		public bool EqualsGroupId(DuplicateItemVM other) {
 			if (ReferenceEquals(null, other)) return false;
 			if (ReferenceEquals(this, other)) return true;
 			return ItemInfo.GroupId.Equals(other.ItemInfo.GroupId);

@@ -390,9 +390,14 @@
                                                 <TextBlock VerticalAlignment="Center" Text="Select 100% Identical Same Folder (Keep First)" />
                                             </MenuItem.Header>
                                         </MenuItem>
-                                        <MenuItem Command="{Binding CheckWhenIdenticalButSizeCommand}">
+                                        <MenuItem Command="{Binding CheckWhenIdenticalButSizeKeepSmallestCommand}">
                                             <MenuItem.Header>
                                                 <TextBlock VerticalAlignment="Center" Text="Select 100% Identical Except Size (Keep Smallest)" />
+                                            </MenuItem.Header>
+                                        </MenuItem>
+                                        <MenuItem Command="{Binding CheckWhenIdenticalButSizeKeepLargestCommand}">
+                                            <MenuItem.Header>
+                                                <TextBlock VerticalAlignment="Center" Text="Select 100% Identical Except Size (Keep Largest)" />
                                             </MenuItem.Header>
                                         </MenuItem>
                                         <MenuItem Command="{Binding CheckLowestQualityCommand}">

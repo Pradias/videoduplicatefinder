@@ -133,7 +133,7 @@ namespace VDF.GUI.ViewModels {
 			}
 		});
 
-		public ReactiveCommand<Unit, Unit> CheckWhenIdenticalButSizeCommand => ReactiveCommand.Create(() => {
+		public ReactiveCommand<Unit, Unit> CheckWhenIdenticalButSizeKeepSmallestCommand => ReactiveCommand.Create(() => {
 			HashSet<Guid> blackListGroupID = new();
 
 			foreach (var first in Duplicates) {
@@ -152,6 +152,27 @@ namespace VDF.GUI.ViewModels {
 			}
 
 		});
+
+		public ReactiveCommand<Unit, Unit> CheckWhenIdenticalButSizeKeepLargestCommand => ReactiveCommand.Create(() => {
+			HashSet<Guid> blackListGroupID = new();
+
+			foreach (var first in Duplicates) {
+				if (blackListGroupID.Contains(first.ItemInfo.GroupId)) continue; //Dup has been handled already
+				var l = Duplicates.Where(d => d.IsVisibleInFilter && d.EqualsButSize(first) && !d.ItemInfo.Path.Equals(first.ItemInfo.Path));
+				var dupMods = l as List<DuplicateItemVM> ?? l.ToList();
+				if (!dupMods.Any()) continue;
+				dupMods.Add(first);
+				dupMods = dupMods.OrderByDescending(s => s.ItemInfo.SizeLong).ToList();
+				dupMods[0].Checked = false;
+				for (int i = 1; i < dupMods.Count; i++) {
+					dupMods[i].Checked = true;
+				}
+
+				blackListGroupID.Add(first.ItemInfo.GroupId);
+			}
+
+		});
+
 		public ReactiveCommand<Unit, Unit> CheckOldestCommand => ReactiveCommand.Create(() => {
 			HashSet<Guid> blackListGroupID = new();
 
