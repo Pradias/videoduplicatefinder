@@ -210,15 +210,35 @@ namespace VDF.Core {
 				}
 			}
 
+			// Write folder size
+			Logger.Instance.Info("Scan folder size.");
+			var st = Stopwatch.StartNew();
+			var foldersPath = DatabaseUtils.Database.Select(x => x.Folder).Distinct();
+			foreach (var folderPath in foldersPath) {
+				try {
+					var folderSize = FolderUtils.GetFolderSize(folderPath);
+					var fEntrys = DatabaseUtils.Database.Where(x => x.Folder == folderPath);
+					foreach (var item in fEntrys) {
+						item.FolderSize = folderSize;
+					}
+				}
+				catch (Exception e) {
+					Logger.Instance.Info($"Skipped folder '{folderPath}' because of {e}");
+					continue;
+				}
+			}
+			st.Stop();
+			Logger.Instance.Info($"Folder size scanned. {foldersPath.Count():N0} folders in {st.Elapsed}");
+
 			Logger.Instance.Info($"Files in database: {DatabaseUtils.Database.Count:N0} ({DatabaseUtils.Database.Count - oldFileCount:N0} files added)");
 		});
 
-		// Check if entry should be excluded from the scan for any reason
-		// Returns true if the entry is invalid (should be excluded)
-		bool InvalidEntry(FileEntry entry, out bool reportProgress) {
-			reportProgress = true;
+        // Check if entry should be excluded from the scan for any reason
+        // Returns true if the entry is invalid (should be excluded)
+        bool InvalidEntry(FileEntry entry, out bool reportProgress) {
+            reportProgress = true;
 
-			if (Settings.IncludeImages == false && entry.IsImage)
+            if (Settings.IncludeImages == false && entry.IsImage)
 				return true;
 			if (Settings.BlackList.Any(f => {
 				if (!entry.Folder.StartsWith(f))
@@ -665,6 +685,24 @@ namespace VDF.Core {
 					if (otherItem.SizeLong > bestMatch.SizeLong)
 						break;
 					otherItem.IsBestSize = true;
+				}
+				//LargeSize
+				groupItems = groupItems.OrderByDescending(d => d.SizeLong);
+				bestMatch = groupItems.First();
+				bestMatch.IsLargestFileSize = true;
+				foreach (DuplicateItem otherItem in groupItems.Skip(1)) {
+					if (otherItem.SizeLong < bestMatch.SizeLong)
+						break;
+					otherItem.IsLargestFileSize = true;
+				}
+				//FolderSize
+				groupItems = groupItems.OrderByDescending(d => d.FolderSizeLong);
+				bestMatch = groupItems.First();
+				bestMatch.IsLargestFolderSize = true;
+				foreach (DuplicateItem otherItem in groupItems.Skip(1)) {
+					if (otherItem.FolderSizeLong < bestMatch.FolderSizeLong)
+						break;
+					otherItem.IsLargestFolderSize = true;
 				}
 				//Fps
 				if (!groupItems.First().IsImage) {

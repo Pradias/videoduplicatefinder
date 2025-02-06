@@ -65,7 +65,8 @@ namespace VDF.Core {
 		public DateTime DateModified;
 		[ProtoMember(8)]
 		public long FileSize;
-
+		[ProtoMember(9)]
+		public long FolderSize;
 		[ProtoIgnore]
 		internal bool invalid = true;
 

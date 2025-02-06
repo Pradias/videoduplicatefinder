@@ -82,6 +82,7 @@ namespace VDF.Core.ViewModels {
 			var fi = new FileInfo(Path);
 			DateCreated = fi.CreationTimeUtc;
 			SizeLong = fi.Exists ? fi.Length : -1;
+			FolderSizeLong = fi.Exists ? file.FolderSize : -1;
 			if (file.IsImage)
 				Format = fi.Extension[1..];
 			Similarity = (1f - difference) * 100;
@@ -134,6 +135,10 @@ namespace VDF.Core.ViewModels {
 
 		[JsonInclude]
 		public bool IsImage { get; private set; }
+		public long FolderSizeLong { get; private set; }
+		public bool IsLargestFolderSize { get; set; }
+		public bool IsLargestFileSize { get; set; }
+
 		[JsonIgnore]
 		public Action? ThumbnailsUpdated;
 		public void SetThumbnails(List<Image>? images, List<TimeSpan> timeSpans) {
