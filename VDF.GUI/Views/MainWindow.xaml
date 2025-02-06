@@ -435,6 +435,14 @@
                                                 </MenuItem.Header>
                                             </MenuItem>
                                         </MenuItem>
+                                        <MenuItem Command="{Binding ClearSelectionSameCommand}">
+                                            <MenuItem.Header>
+                                                <TextBlock 
+                                                    VerticalAlignment="Center" 
+                                                    Text="Clear Selection Same" 
+                                                    ToolTip.Tip="Clear all selected items for a group with the same: Size, Bitrate."/>
+                                            </MenuItem.Header>
+                                        </MenuItem>
                                         <MenuItem Command="{Binding ClearSelectionCommand}">
                                             <MenuItem.Header>
                                                 <TextBlock VerticalAlignment="Center" Text="Clear Selection" />

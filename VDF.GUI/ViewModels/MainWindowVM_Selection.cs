@@ -254,6 +254,38 @@ namespace VDF.GUI.ViewModels {
 
 		});
 
+		public ReactiveCommand<Unit, Unit> ClearSelectionSameCommand => ReactiveCommand.Create((Action)(() => {
+			HashSet<Guid> blackListGroupID = new();
+
+			foreach (var first in Duplicates) {
+				if (blackListGroupID.Contains(first.ItemInfo.GroupId)) continue; //Dup has been handled already
+
+				var l = Duplicates.Where(d => d.IsVisibleInFilter && d.EqualsGroupId(first) && !d.ItemInfo.Path.Equals(first.ItemInfo.Path));
+
+				var dupMods = l as List<DuplicateItemVM> ?? l.ToList();
+				if (!dupMods.Any()) continue;
+				dupMods.Insert(0, first);
+				var check = true;
+
+				// Size
+				if (dupMods.Exists(dupMod => !first.ItemInfo.SizeLong.Equals(dupMod.ItemInfo.SizeLong))) {
+					check = false;
+				}
+
+				// BitRateKbs
+				if (dupMods.Exists(dupMod => !first.ItemInfo.BitRateKbs.Equals(dupMod.ItemInfo.BitRateKbs))) {
+					check = false;
+				}
+
+				if (check) {
+					dupMods.ForEach(dupMod => dupMod.Checked = false);
+				}
+
+				blackListGroupID.Add(first.ItemInfo.GroupId);
+
+			}
+		}));
+
 		public ReactiveCommand<Unit, Unit> ClearSelectionCommand => ReactiveCommand.Create(() => {
 			for (var i = 0; i < Duplicates.Count; i++)
 				Duplicates[i].Checked = false;
