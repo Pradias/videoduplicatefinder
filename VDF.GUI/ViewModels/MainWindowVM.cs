@@ -220,8 +220,12 @@ namespace VDF.GUI.ViewModels {
 				}
 			}
 			if (e.NewItems != null) {
-				foreach (INotifyPropertyChanged item in e.NewItems)
+				foreach (INotifyPropertyChanged item in e.NewItems) {
+					if (((DuplicateItemVM)item).Checked) {
+						DuplicatesSelectedCounter++;
+					}
 					item.PropertyChanged += DuplicateItemVM_PropertyChanged;
+				}
 			}
 			if (e.Action == NotifyCollectionChangedAction.Reset)
 				DuplicatesSelectedCounter = 0;
