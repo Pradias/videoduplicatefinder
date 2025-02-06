@@ -1034,7 +1034,7 @@
                                     Grid.Row="1"
                                     MinHeight="20"
                                     Orientation="Horizontal">
-                                    <TextBlock Text="{Binding #dataGridGrouping.Items.Count, Mode=OneWay, StringFormat=Visible Duplicates: \{0\}}" />
+                                    <TextBlock Text="{Binding #dataGridGrouping.ItemsSource.Count, Mode=OneWay, StringFormat=Visible Duplicates: \{0\}}" />
                                     <Separator
                                         Width="1"
                                         Margin="5"
