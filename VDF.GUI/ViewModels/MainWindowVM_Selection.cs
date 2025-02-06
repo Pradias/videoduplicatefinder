@@ -100,6 +100,39 @@ namespace VDF.GUI.ViewModels {
 			}
 		});
 
+		public ReactiveCommand<Unit, Unit> CheckWhenIdenticalSameFolderCommand => ReactiveCommand.Create(() => {
+			HashSet<Guid> blackListGroupID = new();
+
+			foreach (var first in Duplicates) {
+				if (blackListGroupID.Contains(first.ItemInfo.GroupId)) continue; //Dup has been handled already
+
+				var l = Duplicates.Where(d => d.IsVisibleInFilter && d.EqualsGroupId(first) && !d.ItemInfo.Path.Equals(first.ItemInfo.Path));
+
+				var dupMods = l as List<DuplicateItemVM> ?? l.ToList();
+				if (!dupMods.Any()) continue;
+				dupMods.Insert(0, first);
+				var check = true;
+
+				// Check Full
+				if (dupMods.Exists(dupMod => !dupMod.EqualsFull(first))) {
+					check = false;
+				}
+
+				// Folder
+				if (dupMods.Exists(dupMod => !first.ItemInfo.Folder.Equals(dupMod.ItemInfo.Folder))) {
+					check = false;
+				}
+
+				if (check) {
+					dupMods.ForEach(dupMod => dupMod.Checked = true);
+					first.Checked = false;
+				}
+
+				blackListGroupID.Add(first.ItemInfo.GroupId);
+
+			}
+		});
+
 		public ReactiveCommand<Unit, Unit> CheckWhenIdenticalButSizeCommand => ReactiveCommand.Create(() => {
 			HashSet<Guid> blackListGroupID = new();
 
