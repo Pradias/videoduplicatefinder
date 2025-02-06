@@ -216,32 +216,42 @@ namespace VDF.GUI.ViewModels {
 
 			foreach (var first in Duplicates) {
 				if (blackListGroupID.Contains(first.ItemInfo.GroupId)) continue; //Dup has been handled already
-				IEnumerable<DuplicateItemVM> l = Duplicates.Where(d => d.IsVisibleInFilter && d.EqualsButQuality(first) && !d.ItemInfo.Path.Equals(first.ItemInfo.Path));
+				IEnumerable<DuplicateItemVM> l = Duplicates.Where(d => d.IsVisibleInFilter && d.EqualsGroupId(first) && !d.ItemInfo.Path.Equals(first.ItemInfo.Path));
 				var dupMods = l as List<DuplicateItemVM> ?? l.ToList();
 				if (!dupMods.Any()) continue;
 				dupMods.Insert(0, first);
 
-				DuplicateItemVM keep = dupMods[0];
-
 				//Duration first
-				if (!keep.ItemInfo.IsImage)
-					keep = dupMods.OrderByDescending(d => d.ItemInfo.Duration).First();
+				//Resolution if is image
+				DuplicateItemVM keep = !first.ItemInfo.IsImage ? dupMods.OrderByDescending(d => d.ItemInfo.Duration).First()
+					: dupMods.OrderByDescending(d => d.ItemInfo.FrameSizeInt).First();
 
-				//resolution next, but only when keep is unchanged, or when there was >=1 item with same quality
-				if (keep.ItemInfo.Path.Equals(dupMods[0].ItemInfo.Path) || dupMods.Count(d => d.ItemInfo.Duration == keep.ItemInfo.Duration) > 1)
+				if ((!first.ItemInfo.IsImage && dupMods.Count(d => d.ItemInfo.Duration == keep.ItemInfo.Duration) > 1)
+					|| (first.ItemInfo.IsImage && dupMods.Count(d => d.ItemInfo.FrameSizeInt == keep.ItemInfo.FrameSizeInt) > 1)
+					) {
+					//resolution next, but only when keep is unchanged, or when there was >1 item with same quality
+					if (dupMods.Count(d => d.ItemInfo.Duration == keep.ItemInfo.Duration) > 1
+					&& dupMods.Exists(d => d.ItemInfo.FrameSizeInt > keep.ItemInfo.FrameSizeInt))
 					keep = dupMods.OrderByDescending(d => d.ItemInfo.FrameSizeInt).First();
-
-				//fps next, but only when keep is unchanged, or when there was >=1 item with same quality
-				if (!keep.ItemInfo.IsImage && (keep.ItemInfo.Path.Equals(dupMods[0].ItemInfo.Path) || dupMods.Count(d => d.ItemInfo.FrameSizeInt == keep.ItemInfo.FrameSizeInt) > 1))
+					//fps next, but only when keep is unchanged, or when there was >1 item with same quality
+					else if (!keep.ItemInfo.IsImage
+						&& dupMods.Count(d => d.ItemInfo.FrameSizeInt == keep.ItemInfo.FrameSizeInt) > 1
+						&& dupMods.Exists(d => d.ItemInfo.Fps > keep.ItemInfo.Fps))
 					keep = dupMods.OrderByDescending(d => d.ItemInfo.Fps).First();
-
-				//Bitrate next, but only when keep is unchanged, or when there was >=1 item with same quality
-				if (!keep.ItemInfo.IsImage && (keep.ItemInfo.Path.Equals(dupMods[0].ItemInfo.Path) || dupMods.Count(d => d.ItemInfo.Fps == keep.ItemInfo.Fps) > 1))
+					//Bitrate next, but only when keep is unchanged, or when there was >1 item with same quality
+					else if (dupMods.Exists(d => d.ItemInfo.BitRateKbs == 0))
+						keep = dupMods.Where(d => d.ItemInfo.SizeLong >= keep.ItemInfo.SizeLong)
+							.OrderByDescending(d => d.ItemInfo.SizeLong).First();
+					else if (!keep.ItemInfo.IsImage
+						&& dupMods.Count(d => NumericUtils.AreEqual(d.ItemInfo.Fps, keep.ItemInfo.Fps)) > 1
+						&& dupMods.Exists(d => d.ItemInfo.BitRateKbs > keep.ItemInfo.BitRateKbs))
 					keep = dupMods.OrderByDescending(d => d.ItemInfo.BitRateKbs).First();
-
-				//Audio Bitrate next, but only when keep is unchanged, or when there was >=1 item with same quality
-				if (!keep.ItemInfo.IsImage && (keep.ItemInfo.Path.Equals(dupMods[0].ItemInfo.Path) || dupMods.Count(d => d.ItemInfo.BitRateKbs == keep.ItemInfo.BitRateKbs) > 1))
+					//Audio Bitrate next, but only when keep is unchanged, or when there was >1 item with same quality
+					else if (!keep.ItemInfo.IsImage
+						&& dupMods.Count(d => d.ItemInfo.BitRateKbs == keep.ItemInfo.BitRateKbs) > 1
+						&& dupMods.Exists(d => d.ItemInfo.AudioSampleRate > keep.ItemInfo.AudioSampleRate))
 					keep = dupMods.OrderByDescending(d => d.ItemInfo.AudioSampleRate).First();
+				}
 
 				keep.Checked = false;
 				for (int i = 0; i < dupMods.Count; i++) {
